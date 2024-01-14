@@ -1,5 +1,6 @@
 from django import forms
-from .models import UserModel
+from .models import UserModel, Post
+
 
 class UserForm(forms.ModelForm):
     class Meta:
@@ -9,3 +10,8 @@ class UserForm(forms.ModelForm):
         widgets = {
             'password': forms.PasswordInput(),
         }
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'text', 'image', 'private']        

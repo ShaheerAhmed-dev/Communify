@@ -35,8 +35,13 @@ class Profile(models.Model):
     
 class Post(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
-    date = models.models.DateField(default=date.today)
+    date = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=255)
+    text = models.TextField()
+    image = models.ImageField(upload_to='thought_images/', blank=True, null=True)
+    private = models.BooleanField(default=False)
     type = models.ForeignKey('PostType', related_name='posts', on_delete=models.CASCADE)
+
 
     def __str__(self):
         return f"Post {self.id}"
