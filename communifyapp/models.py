@@ -1,23 +1,14 @@
 
-from django.contrib.auth.models import AbstractUser, Permission
+from django.contrib.auth.models import AbstractUser, Permission, BaseUserManager
 from PIL import Image
 from django.db import models
 from datetime import date
+# from django.contrib.auth.models import User
 
 
 
 # Create your models here.
-
-class UserModel(AbstractUser):
-    contact_no = models.CharField(max_length=15, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], blank=True, null=True)
-
-    def __str__(self):
-        return self.username
-    
 class Profile(models.Model):
-    user = models.OneToOneField(UserModel, on_delete=models.CASCADE)
     image = models.ImageField(default = 'default.jpg', upload_to = 'profile_pics')
 
     def __str__(self):
@@ -32,10 +23,19 @@ class Profile(models.Model):
             output_size = (300, 300)
             img.thumbnail(output_size)
             img.save(self.image.path)
+#         return user
+class CustomUser(AbstractUser):
+    contact_no = models.CharField(max_length=15, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], blank=True, null=True)
+    profile_id = models.OneToOneField(Profile, on_delete = models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return self.username
     
 class Post(models.Model):
-    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
-    date = models.models.DateField(default=date.today)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    date = models.DateField(default=date.today)
     type = models.ForeignKey('PostType', related_name='posts', on_delete=models.CASCADE)
 
     def __str__(self):
