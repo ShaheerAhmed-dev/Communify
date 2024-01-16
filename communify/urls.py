@@ -16,6 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+# Your project's main urls.py
+
+from django.urls import path, include
+from django.contrib import admin
 
 urlpatterns = [
     path('comadmin/', admin.site.urls),

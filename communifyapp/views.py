@@ -1,15 +1,15 @@
 from django.shortcuts import render, redirect
+from django.urls import reverse_lazy 
 from django.views import generic
-from django.views.generic.edit import CreateView
-from django.urls import reverse_lazy
-from .models import CustomUser
-from .forms import SignupForm
+from .models import CustomUser, Post
+from .forms import SignupForm, PostForm, LoginForm
 from django.contrib.auth.views import LoginView
 from django.views.generic.edit import CreateView
 from django.contrib.auth import login, authenticate, logout
 from django.views.generic import View
-from .forms import LoginForm
-from django.contrib import messages
+from django.views import View
+
+
 
 
 # Create your views here.
@@ -80,3 +80,21 @@ def home(request):
 # @method_decorator(login_required, name="dispatch")
 # class ProtectedView(TemplateView):
 #     template_name = "secret.html"
+
+class PostView(View):
+    template_name = 'communifyapp/create_post.html'
+    form_class = PostForm
+
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        if form.is_valid():
+            thought = form.save(commit=False)
+            thought.user = request.user
+            thought.save()
+        return render(request, self.template_name, {'form': form})
