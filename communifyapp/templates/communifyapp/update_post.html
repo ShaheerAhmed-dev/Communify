@@ -1,0 +1,14 @@
+<!-- create_thought.html -->
+
+
+
+{% block content %}
+  <h2>Updade Post</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create Post</button>
+  </form>
+  <br>
+  <a href="{% url 'home' %}">Back to Home</a>
+{% endblock %}

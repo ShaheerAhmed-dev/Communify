@@ -9,6 +9,8 @@
   <form method = "POST" >
     {% csrf_token %}
     {{form.as_p}}
+    <h1> communifyapp</h1>
+    {% block content %}{% endblock content%}
 
     <button type="submit">Submit</button>
   </form>

@@ -40,18 +40,28 @@ class Post(models.Model):
     private = models.BooleanField(default=False)
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    date = models.DateField(default=date.auto_now)
-    type = models.ForeignKey('PostType', related_name='posts', on_delete=models.CASCADE)
+    # date = models.DateField(default=date.auto_now)
+    type = models.CharField(max_length=255, choices=[('social', 'Social'), ('political', 'Political'), ('Economic', 'Economic'), ('other', 'Other')])
 
 
     def __str__(self):
         return f"Post {self.id}"
     
-class PostType(models.Model):
-    type_id = models.AutoField(primary_key=True)
-    type_name = models.CharField(max_length=255)
-    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+# class PostType(models.Model):
+#     type_id = models.AutoField(primary_key=True)
+#     type_name = models.CharField(max_length=255, choices=[('social', 'Social'), ('political', 'Political'), ('Economic', 'Economic'), ('other', 'Other')])
+#     post = models.ForeignKey('Post', on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.type_name
-    
+#     def __str__(self):
+#         return self.type_name
+class Comment(models.Model):
+    name = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    content = models.TextField()
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created',)
+
+    # def __str__(self):
+    #     return 'Comment by {}'.format(self.user)

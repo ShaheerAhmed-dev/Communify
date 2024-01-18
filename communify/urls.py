@@ -22,6 +22,6 @@ from django.urls import path, include
 from django.contrib import admin
 
 urlpatterns = [
-    path('comadmin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('communify/', include('communifyapp.urls'))
 ]

@@ -4,10 +4,16 @@ from django.views import generic
 from .models import CustomUser, Post
 from .forms import SignupForm, PostForm, LoginForm
 from django.contrib.auth.views import LoginView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.detail import DetailView
 from django.contrib.auth import login, authenticate, logout
 from django.views.generic import View
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.shortcuts import get_object_or_404
+from .models import Post, Comment
+from .forms import CommentForm
 
 
 
@@ -81,7 +87,7 @@ def home(request):
 # class ProtectedView(TemplateView):
 #     template_name = "secret.html"
 
-class PostView(View):
+class CreatePostView(LoginRequiredMixin,CreateView):
     template_name = 'communifyapp/create_post.html'
     form_class = PostForm
 
@@ -98,3 +104,94 @@ class PostView(View):
             thought.user = request.user
             thought.save()
         return render(request, self.template_name, {'form': form})
+    
+# class PostTypeView(LoginRequiredMixin, View):
+#     template_name = 'communifyapp/posttype.html'
+#     form_class = PostTypeForm
+    
+class PostUpdateView(LoginRequiredMixin, UpdateView):
+    model = Post
+    template_name = 'communifyapp/update_post.html'
+    fields = ['text', 'image', 'private', 'type']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        update = True
+        context['update'] = update
+
+        return context
+
+    def get_success_url(self):
+        messages.success(
+            self.request, 'Your post has been updated successfully.')
+        return reverse_lazy("communifyapp/home")
+
+    def get_queryset(self):
+        return self.model.objects.filter(user=self.request.user)
+    
+class PostDeleteView(LoginRequiredMixin, DeleteView):
+    model = Post
+    template_name = 'communifyapp/delete_post.html'
+
+    def get_success_url(self):
+        messages.success(
+            self.request, 'Your post has been deleted successfully.')
+        return reverse_lazy("communifyapp/home")
+
+    def get_queryset(self):
+        return self.model.objects.filter(user=self.request.user)
+    
+
+
+# ...
+
+class PostView(LoginRequiredMixin,DetailView):
+    model = Comment
+    template_name = "communifyapp/post.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs["pk"]
+        # slug = self.kwargs["slug"]
+
+        form = CommentForm()
+        post = get_object_or_404(Post, pk=pk)
+        comments = post.comment_set.all()
+
+        context['post'] = post
+        context['comments'] = comments
+        context['form'] = form
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = CommentForm(request.POST)
+        self.object = self.get_object()
+        context = super().get_context_data(**kwargs)
+
+        post = Post.objects.filter(id=self.kwargs['pk']).first()
+
+        if post:
+            comments = post.comment_set.all()
+        else:
+            comments = []
+
+        context['post'] = post
+        context['comments'] = comments
+        context['form'] = form
+        print("this is working")
+
+        if form.is_valid():
+            print("workinggggggggggggg")
+            name = form.cleaned_data['name']
+            content = form.cleaned_data['content']
+
+            comment = Comment.objects.create(
+                name=name, content=content, post=post
+            )
+            form = CommentForm()
+            context['form'] = form
+        else:
+        # Print form errors for debugging
+            print('Form errors:', form.errors)
+
+        return self.render_to_response(context=context)
