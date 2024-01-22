@@ -1,5 +1,5 @@
 from django import forms
-from .models import CustomUser, Post
+from .models import CustomUser, Post, Profile
 from django.contrib.auth.forms import UserCreationForm
 # from django.contrib.auth.models import User
 
@@ -7,12 +7,9 @@ class SignupForm(UserCreationForm):
     class Meta:
         model = CustomUser
         email = forms.EmailField()
-        fields = ['username', 'email', 'password']
+        fields = ['username', 'email']
 
 
-        widgets = {
-            'password': forms.PasswordInput(),
-        }
 
 class PostForm(forms.ModelForm):
     class Meta:
@@ -37,9 +34,14 @@ from .models import Comment
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ('name', 'content')
+        fields = ['content', 'post', 'name']
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             # Assuming your Comment model has a ForeignKey to the User model
             self.fields['name'].widget = forms.Select(choices=CustomUser.objects.all().values_list('id', 'username'))
+
+class EditProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['image', 'about_me']

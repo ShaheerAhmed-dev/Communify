@@ -1,13 +1,13 @@
-{% extends 'communifyapp/base_login.html' %}
+{% extends 'communifyapp/base_home.html' %}
 
 
 
 {% block content %}
-  <h2>Update Post</h2>
+  <h2>Update Profile</h2>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Create Post</button>
+    <button type="submit">Update Profile</button>
   </form>
   <br>
   <a href="{% url 'home' %}">Back to Home</a>

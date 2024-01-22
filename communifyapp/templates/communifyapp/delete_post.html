@@ -1,3 +1,17 @@
+{% extends 'communifyapp/base_login.html' %}
+
+
+
+{% block content %}
+  <h2>Delete Post</h2>
+  <form method="post">{% csrf_token %}
+    <p>Are you sure you want to delete "{{ object.text }}"?</p>
+    {{ form }}
+    <input type="submit" value="Confirm">
+</form>
+  <br>
+  <a href="{% url 'home' %}">Back to Home</a>
+{% endblock %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,10 +20,6 @@
     <title>Document</title>
 </head>
 <body>
-    <form method="post">{% csrf_token %}
-    <p>Are you sure you want to delete "{{ object.text }}"?</p>
-    {{ form }}
-    <input type="submit" value="Confirm">
-</form>
+
 </body>
 </html>

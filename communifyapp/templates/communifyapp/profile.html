@@ -1,0 +1,39 @@
+{% extends 'communifyapp/base_home.html' %}
+{% load static %}
+
+{% block head_title %}{{ user.username }} | Django Blog{% endblock head_title %}
+
+{% block content %}
+
+<div class="card container-fluid mt-5" style="width: 18rem;">
+  <img src="{{ profile.image.url }}" class="card-img-top" alt="{{ user.username }}">
+  <div class="card-body">
+    <h5 class="card-title">{{ user.username }}</h5>
+    <p class="card-text">{{ user.profile.about_me }}</p>
+    <a href="{% url 'home' %}" class="btn btn-danger">Back</a>
+    <a href="{% url 'edit-profile' %}" class="btn btn-primary">Edit Profile</a>
+  </div>
+</div>
+<!--<div class="container-fluid mt-5">-->
+<!--  <div class="row">-->
+<!--    <div class="card col-lg-6 offset-lg-3 mb-3">-->
+<!--      <div class="row">-->
+<!--        {% if user.profile.image %}-->
+<!--        <figure class="figure">-->
+<!--          <img src="{{ profile.image.url }}" class="figure-img img-fluid rounded" alt="{{ user.username }}">-->
+<!--&lt;!&ndash;          <figcaption class="figure-caption">A caption for the above image.</figcaption>&ndash;&gt;-->
+<!--        </figure>-->
+
+<!--        {% else %}-->
+<!--        <img class="card-img-top col-sm-3 col-4 my-3 img-fluid" src="{% static 'img/avatar.svg' %}" alt="{{ user.username }}">-->
+<!--        {% endif %}-->
+<!--        <div class="card-body col-9">-->
+<!--          <h2 class="card-title my-3">{{ user.username }}</h2>-->
+<!--          <p>Last login on: {{ user.last_login }}</p>-->
+<!--          <p class="card-text">{{ user.profile.about_me }}</p>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+{% endblock %}

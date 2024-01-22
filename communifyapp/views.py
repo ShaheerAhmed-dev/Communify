@@ -1,67 +1,45 @@
-from django.shortcuts import render, redirect
-from django.urls import reverse_lazy 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
 from django.views import generic
-from .models import CustomUser, Post
+from requests import post
+
+from .models import CustomUser, Post, Profile
 from .forms import SignupForm, PostForm, LoginForm
 from django.contrib.auth.views import LoginView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.detail import DetailView
 from django.contrib.auth import login, authenticate, logout
-from django.views.generic import View
+from django.views.generic import View, ListView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.shortcuts import get_object_or_404
 from .models import Post, Comment
-from .forms import CommentForm
+from .forms import CommentForm, EditProfileForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 
 
-
-
-# Create your views here.
-
-# def signupview(request):
-#     if request.method == 'POST':
-#         print("form is working", form.data)
-#         form = SignupForm(request.POST)
-#         if form.is_valid():
-#             # username=form.cleaned_data['username']
-#             # password=form.cleaned_data['password']
-#             # address=form.cleaned_data['address']
-#             # gender=form.cleaned_data['password']
-#             # contact=form.cleaned_data['contact_no']
-            
-#             # user = UserModel.objects.create(username=username, password= password, address = address, gender= gender, contact=contact)
-            
-#             # login(request, user)
-#             form.save()
-#             username = form.cleaned_data.get('username')
-#             messages.success(request, f'Account was created for {username}!')
-#             return redirect('login')
-#     else:
-#         form = SignupForm()
-#     return render(request, 'communifyapp/signup.html', {'form': form})
 class signUpView(CreateView):
     model = CustomUser
     form_class = SignupForm
     template_name = 'communifyapp/signup.html'
-    success_url = reverse_lazy('registration/login') 
+    success_url = reverse_lazy('login')
 
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        return response
-            # Handle the case when the form is not valid
-            
-    
+    # def form_valid(self, form):
+    #     print(form.errors)
+    #     response = super().form_valid(form)
+    #     return response
+
+
 class LoginPageView(View):
     template_name = 'authentication/login.html'
     form_class = LoginForm
-    
+
     def get(self, request):
         form = self.form_class()
         message = ''
         return render(request, self.template_name, context={'form': form, 'message': message})
-        
+
     def post(self, request):
         form = self.form_class(request.POST)
         if form.is_valid():
@@ -74,28 +52,31 @@ class LoginPageView(View):
                 return redirect('/communify/home')
         message = 'Login failed!'
         return render(request, self.template_name, context={'form': form, 'message': message})
-    
+
+
 def logout_user(request):
     logout(request)
     return redirect('login')
-    
 
+
+@login_required()
 def home(request):
-     return render(request, 'communifyapp/home.html')
+    user_profile = get_object_or_404(Profile, user=request.user)
+    context = {'profile': user_profile, 'user': request.user, 'profile_image': user_profile.image}
+    return render(request, 'communifyapp/home.html', context= context )
+
 
 # @method_decorator(login_required, name="dispatch")
 # class ProtectedView(TemplateView):
 #     template_name = "secret.html"
 
-class CreatePostView(LoginRequiredMixin,CreateView):
+class CreatePostView(LoginRequiredMixin, CreateView):
     template_name = 'communifyapp/create_post.html'
     form_class = PostForm
-
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
         return render(request, self.template_name, {'form': form})
-
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
@@ -104,11 +85,12 @@ class CreatePostView(LoginRequiredMixin,CreateView):
             thought.user = request.user
             thought.save()
         return render(request, self.template_name, {'form': form})
-    
+
+
 # class PostTypeView(LoginRequiredMixin, View):
 #     template_name = 'communifyapp/posttype.html'
 #     form_class = PostTypeForm
-    
+
 class PostUpdateView(LoginRequiredMixin, UpdateView):
     model = Post
     template_name = 'communifyapp/update_post.html'
@@ -128,7 +110,8 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return self.model.objects.filter(user=self.request.user)
-    
+
+
 class PostDeleteView(LoginRequiredMixin, DeleteView):
     model = Post
     template_name = 'communifyapp/delete_post.html'
@@ -140,27 +123,24 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return self.model.objects.filter(user=self.request.user)
-    
 
 
 # ...
 
-class PostView(LoginRequiredMixin,DetailView):
-    model = Comment
+class PostView(LoginRequiredMixin, DetailView):
+    model = Post
     template_name = "communifyapp/post.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         pk = self.kwargs["pk"]
-        # slug = self.kwargs["slug"]
-
-        form = CommentForm()
         post = get_object_or_404(Post, pk=pk)
         comments = post.comment_set.all()
+        user_profile = get_object_or_404(Profile, user=post.user)
 
         context['post'] = post
         context['comments'] = comments
-        context['form'] = form
+        context['profile_image'] = user_profile.image
         return context
 
     def post(self, request, *args, **kwargs):
@@ -191,7 +171,58 @@ class PostView(LoginRequiredMixin,DetailView):
             form = CommentForm()
             context['form'] = form
         else:
-        # Print form errors for debugging
+            # Print form errors for debugging
             print('Form errors:', form.errors)
 
         return self.render_to_response(context=context)
+
+class HomeView(LoginRequiredMixin, ListView):
+    model = Post
+    context_object_name = 'posts'
+    template_name = "communifyapp/home.html"
+    def get_context_data(self, **kwargs):
+        context = super(HomeView, self).get_context_data(**kwargs)
+        user_profile = get_object_or_404(Profile, user=self.request.user)
+        # posts = get_object_or_404(Post, user=self.request.user)
+        context['profile'] = user_profile
+        context['user'] = self.request.user
+        context['profile_image'] = user_profile.image
+        # context['posts'] = posts
+        return context
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = "communifyapp/commentpost.html"
+
+    def form_valid(self, form):
+        form.instance.name = self.request.user
+        form.instance.post_id = self.kwargs['pk']
+        return super().form_valid(form)
+
+
+@login_required
+def profile(request):
+    # user = get_object_or_404(CustomUser, username=username)
+    user_profile = get_object_or_404(Profile, user= request.user)
+    context = {'profile': user_profile, 'user': request.user, 'profile_image': user_profile.image}
+    return render(request, 'communifyapp/profile.html', context = context)
+
+
+class EditProfileView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    template_name = 'communifyapp/edit_profile.html'
+    fields = ['image', 'about_me']
+    success_url = reverse_lazy('profile')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        update = True
+        context['update'] = update
+        user_profile = get_object_or_404(Profile, user=self.request.user)
+        context['profile_image'] = user_profile.image
+        return context
+
+    def get_object(self, queryset=None):
+        user_profile = get_object_or_404(Profile, user=self.request.user )
+        return user_profile

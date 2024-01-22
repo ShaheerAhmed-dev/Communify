@@ -1,4 +1,6 @@
-{% extends 'communifyapp/base.html' %}
+{% extends 'communifyapp/base_login.html' %}
+{% comment %} {% crispy example_form example_form.helper %} {% endcomment %}
+{% comment %} {% load crispy_forms_tags %} {% endcomment %}
 
     {%  block content %}
         {% comment %} <form action="{% url 'login' %}" method="POST">
@@ -6,21 +8,46 @@
             {{form.as_p}}
             <input type="submit" value="Submit">
         </form> {% endcomment %}
-        <div class="content-section">
-        <form action="{% url 'login' %}" method="POST">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Join Today</legend>
-                {{ forms.as_p }}
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-info" type="submit">Sign Up</button>
-            </div>
-        </form>
+    {% comment %} <div class="content-section">
+         
         <div class="border-top pt-3">
             <small class="text-muted">
                 Already Have An Account? <a class="ml-2" href="{% url 'login' %}">Sign In</a>
             </small>
         </div>
-    </div>
+    </div> {% endcomment %}
+     <form action="{% url 'signup' %}" method="POST">
+        {% csrf_token %}
+            {{ form.as_p}}
+        <button class="btn btn-outline-info mb-3 d-block mx-auto" type="submit">Sign Up</button>
+    </form>
+         {% if form.errors %}
+              <div class="alert alert-danger">
+                {{ form.errors }}
+              </div>
+        {% endif %}
+        {% comment %} <div class="mb-3 text-center">
+            <label for="{{ form.username.id_for_label }}" >Username:</label>
+            {{ form.username }}
+        </div>
+
+        <div class="mb-3 text-center">
+            <label for="{{ form.email.id_for_label }}">Email:</label>
+            {{ form.email }}
+        </div>
+
+        <div class="mb-3 text-center">
+            <label for="{{ form.password.id_for_label }}">Password:</label>
+            {{ form.password1 }}
+        </div>
+
+        <div class="mb-3 text-center"">
+            <label for="{{ form.password.id_for_label }}">Confirm Password:</label>
+            {{ form.password2 }}
+        </div> {% endcomment %}
+
+
+    
+    
+     
     {% endblock content %}
