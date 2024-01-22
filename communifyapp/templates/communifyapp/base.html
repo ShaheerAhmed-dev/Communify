@@ -3,15 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Communify</title>
 </head>
 <body>
-  <form method = "POST" >
-    {% csrf_token %}
-    {{form.as_p}}
 
-    <button type="submit">Submit</button>
-  </form>
   
-</body>
-</html>
+
+   {%  block content %}
+   <h2>Communify | Social Connect </h2> 
+ {%  if user.is_authenticated %}
+     <p>You are logged in as {{ request.user }}. Click here to <a href="{% url 'logout' %}">log out</a></p>
+
+ {%else%}
+     <p>Click here to <a href="{% url 'login' %}">login</a></p>
+ {% endif %} 
+
+ <h2 style="text-align: center;">Your Posts</h2>
+ {% if user_posts %}
+<ul style="list-style: none; padding: 0; text-align: center;">
+{% for post in user_posts %}
+
+ <li>
+     {{ post.text }}<br><br>
+   {% if post.image %}
+     <img src="{{ post.image.url }}" alt="Post Image" style="max-width: 400px; max-height: 400px; margin: 0 auto;"><br><br>
+     {% endif %}
+ </li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No posts yet.</p>
+{% endif %}
+{% endblock content %}

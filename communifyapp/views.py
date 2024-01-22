@@ -1,13 +1,20 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy 
 from django.views import generic
-from .models import CustomUser, Post
-from .forms import SignupForm, PostForm, LoginForm
+from .models import CustomUser, Post, Comment
+from .forms import SignupForm, PostForm, LoginForm, CommentForm
 from django.contrib.auth.views import LoginView
 from django.views.generic.edit import CreateView
 from django.contrib.auth import login, authenticate, logout
-from django.views.generic import View
+from django.views.generic import View,ListView 
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+
+
+
 
 
 
@@ -65,7 +72,7 @@ class LoginPageView(View):
             )
             if user is not None:
                 login(request, user)
-                return redirect('/communify/home')
+                return redirect('home')
         message = 'Login failed!'
         return render(request, self.template_name, context={'form': form, 'message': message})
     
@@ -81,7 +88,7 @@ def home(request):
 # class ProtectedView(TemplateView):
 #     template_name = "secret.html"
 
-class PostView(View):
+class PostView(LoginRequiredMixin,View):
     template_name = 'communifyapp/create_post.html'
     form_class = PostForm
 
@@ -93,8 +100,64 @@ class PostView(View):
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
+
         if form.is_valid():
             thought = form.save(commit=False)
-            thought.user = request.user
-            thought.save()
+            thought.user = self.request.user
+            thought.save() 
+
+        return redirect('home')
         return render(request, self.template_name, {'form': form})
+
+
+class PostListView(LoginRequiredMixin, ListView):
+    model = Post
+    template_name = 'communifyapp/home.html'
+    context_object_name = 'all_posts'
+
+    def get_queryset(self):
+        return Post.objects.all()
+
+class CommentCreateView(LoginRequiredMixin, View):
+    template_name = 'communifyapp/create_comment.html'
+    form_class = CommentForm
+
+    def get(self, request, *args, **kwargs):
+        post_id = kwargs.get('post_id')
+        post = Post.objects.get(pk=post_id)
+        form = self.form_class()
+        comments = Comment.objects.filter(post=post)
+
+        # Render the template with the form, post, and comments
+        return render(request, self.template_name, {'form': form, 'post': post, 'comments': comments})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+            post_id = kwargs.get('post_id')
+            post = Post.objects.get(pk=post_id)
+
+            comment = form.save(commit=False)
+            comment.user = self.request.user
+            comment.post = post
+            comment.save()
+
+        return redirect('home')
+
+class CommentListView(ListView):
+    model = Comment
+    template_name = 'communifyapp/home.html'
+    context_object_name = 'comments'
+
+    def get_queryset(self):
+        # Retrieve comments for a specific post
+        post_id = self.kwargs.get('post_id')
+        return Comment.objects.filter(post__id=post_id)        
+
+
+class LikePostView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        post = get_object_or_404(Post, pk=kwargs['post_id'])
+        post.likes.add(request.user)
+        return JsonResponse({'likes': post.likes.count()})

@@ -1,5 +1,5 @@
 from django import forms
-from .models import CustomUser, Post
+from .models import CustomUser, Post, Comment
 from django.contrib.auth.forms import UserCreationForm
 # from django.contrib.auth.models import User
 
@@ -23,3 +23,10 @@ class LoginForm(forms.Form):
     username = forms.CharField(max_length=60)
     password = forms.CharField(max_length=60, widget=forms.PasswordInput)
 
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text']
+        
+        

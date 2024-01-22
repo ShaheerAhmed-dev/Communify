@@ -1,11 +1,158 @@
+<style>
+/* Add this to your existing CSS file or include it in a <style> tag in your HTML file */
+    body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(to right, #3494E6, #EC6EAD);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: #fff;
+    }
+    
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    h2 {
+        font-size: 28px;
+        text-align: center;
+        color: #1e88e5;
+    }
+    
+    .post-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    
+    .post-container img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+    
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+    }
+    
+    .button-container button {
+        background-color: #4CAF50;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    
+    .button-container button:hover {
+        background-color: #45a049;
+    }
+    
+    .comment-container {
+        margin-top: 20px;
+    }
+    
+    .comment-container h3 {
+        font-size: 20px;
+        color: #1e88e5;
+    }
+    
+    .comment-container ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .comment-container li {
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .comment-container li span {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+    
+    /* Additional Styles for Heading, Logout, and Create Post Button */
+    h1 {
+        font-size: 36px;
+        margin-bottom: 20px;
+        color: #1e88e5;
+    }
+    
+    .logout-button, .create-post-button {
+        background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    transition: background-color 0.3s; /* Smooth transition */
+    }
+    
+    .logout-button:hover, .create-post-button:hover {
+        background-color: #45a049;
+    }
+    h3 {
+        color: black;
+    }
+    
+    .post-text {
+        color: black;
+    }
+    
+</style>
+
+
 {% extends 'communifyapp/base.html' %}
 
-    {%  block content %}
-          <h2>This is the home page</h2> 
-        {%  if user.is_authenticated %}
-            <p>You are logged in as {{ request.user }}. Click here to <a href="{% url 'logout' %}">log out</a></p>
-
-        {%else%}
+{% block content %}
+    <div class="container">
+        <h2>Communify | Social Connect</h2> 
+        {% if user.is_authenticated %}
+            <p>You are logged in as {{ request.user }}. Click here to <button type="submit" class="logout-button"> <a href="{% url 'logout' %}" style="text-decoration:none">Log out</a> </button> </p>
+        {% else %}
             <p>Click here to <a href="{% url 'login' %}">login</a></p>
         {% endif %} 
-    {% endblock content %}
+        <button type="submit" class="create-post-button"><a href="{% url 'createpost' %}" style="text-decoration:none">Create Post</a></button>
+
+        {% if all_posts %}
+            {% for post in all_posts %}
+                <div class="post-container">
+                    <h3>Post</h3>
+                    <p class="post-text">{{ post.text }}</p>
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="Post Image">
+                    {% endif %}
+                    <div class="button-container">
+                        <button type="button" class="like-button" data-post-id="{{ post.id }}"> Like </button>
+                        <button type="submit" ><a href="{% url 'createcomment' post_id=post.id %}" style="text-decoration:none"> Comment </a></button>
+                        <button type="submit" ><a href="{% url 'createcomment' post_id=post.id %}" style="text-decoration:none"> Share </a></button>
+                    </div>
+                    
+                    <div class="comment-container">
+                        <h3>All Comments </h3>
+                        <ul>
+                            {% for comment in post.comments.all %}
+                                <li><span>{{ comment.user.username }}</span>: {{ comment.text }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No posts yet.</p>
+        {% endif %}
+    </div>
+{% endblock content %}

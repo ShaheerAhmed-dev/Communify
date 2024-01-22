@@ -1,0 +1,9 @@
+{% extends 'communifyapp/base.html' %}
+{% block content %}
+    <h2>Create Comment</h2>
+    <form method="post" action="{% url 'createcomment' post_id=post.id %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit Comment</button>
+    </form>
+{% endblock content %}

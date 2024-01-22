@@ -1,8 +1,57 @@
-<!-- create_thought.html -->
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #3494E6, #EC6EAD);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #000; /* Text color */
+  }
+
+  h2 {
+    text-align: center;
+    color: #000; /* Heading color */
+  }
+
+  form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 50%;
+    margin: 0 auto;
+  }
+
+  button {
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    transition: background-color 0.3s; /* Smooth transition */
+  }
+
+  button:hover {
+    background-color: #45a049;
+  }
+
+  a {
+    color: #000; /* Link color */
+    display: block;
+    margin-top: 10px;
+    text-align: center;
+    text-decoration: none;
+  }
+</style>
 
 
-
-{% block content %}
+  {% block content %}
   <h2>Create a Post</h2>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
