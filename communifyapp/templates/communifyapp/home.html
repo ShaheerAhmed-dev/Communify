@@ -4,22 +4,25 @@
 
 
 <div class="text-center">
-    <strong class="text-center">Posts</strong>
+    <p class="h1">Posts</p>
 </div>
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
-    {% for post in posts %}
+{% for post in posts %}
+<div class="row mb-2">
     <div class="col-3"></div>
     <div class="col-6">
-        <div class="card h-100">
+
+        <div class="card">
             <div class="card-body">
                 <img class="rounded-circle mr-2" src="/media/{{  profile_image }}" alt="profile_image"
                      width="20"
                      height="20">
                 <strong class="card-title">{{user.username}} </strong> said
                 <p class="card-text">{{ post.text }}</p>
-                <p class="m-1 mt-3">{{ post.image }}</p>
-                <a href="{% url 'post' post.id %}" class="btn btn-primary btn-sm">Post Detail</a>
+                {% if post.image %}
+                <img src="/media/{{ post.image }}" class="img-thumbnail p-0 mb-1" alt="">
+                {% endif %}
+                <a href="{% url 'post' post.id %}" class="btn btn-primary">Post Detail</a>
             </div>
             <div class="card-footer">
                 <small class="text-body-secondary">{{ post.date }}</small>
@@ -27,7 +30,41 @@
         </div>
     </div>
     <div class="col-3"></div>
-    {% endfor %}
+</div>
+{% empty %}
+<div class="text-center">No Posts to show right now.</div>
 
+{% endfor %}
+<hr class="my-4">
+<div class="text-center">
+   <p class="h1">Shares</p>
+</div>
+{% for share in shares %}
+<div class="row mb-2">
 
-    {% endblock content %}
+    <div class="col-3"></div>
+    <div class="col-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <img class="rounded-circle mr-2" src="/media/{{  share.post.user.profile_image }}" alt="profile_image"
+                     width="20"
+                     height="20">
+                <strong class="card-title">{{share.post.user.username}} </strong> said
+                <p class="card-text">{{ share.post }}</p>
+                {% if share.post.image %}
+                <img src="/media/{{ share.post.image }}" class="img-thumbnail p-0 mb-1" alt="">
+                {% endif %}
+                <a href="{% url 'post' share.post.id %}" class="btn btn-primary btn-sm w3-margin-top">Post Detail</a>
+            </div>
+            <div class="card-footer">
+                <small class="text-body-secondary">{{ share.date }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-3"></div>
+</div>
+{% empty %}
+<div class="text-center">No shares at the moment.</div>
+{% endfor %}
+
+{% endblock content %}

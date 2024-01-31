@@ -1,0 +1,38 @@
+
+{% extends 'communifyapp/base_home.html' %}
+
+{%  block content %}
+
+<div class="text-center">
+    <strong class="text-center">Post</strong>
+</div>
+
+<div class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <img class="rounded-circle mr-2" src="/media/{{  profile_image }}" alt="profile_image"
+                     width="20"
+                     height="20">
+                <strong class="card-title">{{post.user.username}} </strong> said
+                <strong class="card-title">{{post.text}} </strong> said
+                <form method="post" action="{% url 'share' post.id %}">
+                    {% csrf_token %}
+                    <p>{{form.to_user}}</p>
+                    <button type="submit" class="btn btn-info">Share</button>
+                </form>
+
+
+
+            </div>
+            <div class="card-footer">
+                <small class="text-body-secondary">{{ post.date }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-3"></div>
+</div>
+
+
+    {% endblock content %}

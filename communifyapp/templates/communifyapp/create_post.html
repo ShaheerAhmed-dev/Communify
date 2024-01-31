@@ -1,14 +1,38 @@
 {% extends 'communifyapp/base_home.html' %}<!-- create_thought.html -->
 
 
-
 {% block content %}
-  <h2>Create a Post</h2>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Create Post</button>
-  </form>
-  <br>
-  <a href="{% url 'home' %}">Back to Home</a>
+
+
+<div class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2>Create a Post</h2>
+                <form  method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit">Create Post</button>
+                </form>
+                <br>
+                <a href="{% url 'home' %}">Back to Home</a>
+
+            </div>
+            <div class="card-footer">
+                <small class="text-body-secondary">{{ post.date }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-3"></div>
+</div>
 {% endblock %}
+
+<!--<h2>Create a Post</h2>-->
+<!--  <form method="post" enctype="multipart/form-data">-->
+<!--    {% csrf_token %}-->
+<!--    {{ form.as_p }}-->
+<!--    <button type="submit">Create Post</button>-->
+<!--  </form>-->
+<!--  <br>-->
+<!--  <a href="{% url 'home' %}">Back to Home</a>-->

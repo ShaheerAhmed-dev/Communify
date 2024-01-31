@@ -1,6 +1,7 @@
 from django import forms
-from .models import CustomUser, Post, Profile
+from .models import CustomUser, Post, Profile, Like, Share
 from django.contrib.auth.forms import UserCreationForm
+from .models import Comment
 # from django.contrib.auth.models import User
 
 class SignupForm(UserCreationForm):
@@ -28,18 +29,32 @@ class LoginForm(forms.Form):
     username = forms.CharField(max_length=60)
     password = forms.CharField(max_length=60, widget=forms.PasswordInput)
 
-from django import forms
-from .models import Comment
+
 
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ['content', 'post', 'name']
+        fields = ['content', 'post', 'user']
+
+class ShareForm(forms.ModelForm):
+    class Meta:
+        model = Share
+        fields = ['post', 'from_user', 'to_user']
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             # Assuming your Comment model has a ForeignKey to the User model
-            self.fields['name'].widget = forms.Select(choices=CustomUser.objects.all().values_list('id', 'username'))
+            self.fields['to_user'].widget = forms.ChoiceField(choices=CustomUser)
+
+class LikeForm(forms.ModelForm):
+    class Meta:
+        model = Like
+        fields = ['user', 'post']
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     # Assuming your Comment model has a ForeignKey to the User model
+    #     self.fields['name'].widget = forms.Select(choices=CustomUser.objects.all().values_list('id', 'username'))
 
 class EditProfileForm(forms.ModelForm):
     class Meta:

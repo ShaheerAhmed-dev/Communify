@@ -3,20 +3,21 @@
 {%  block content %}
 
 <div class="text-center">
-    <strong class="text-center">Post</strong>
+    <p class="h1">Post Detail</p>
 </div>
 
 <div class="row">
     <div class="col-3"></div>
     <div class="col-6">
-        <div class="card h-100">
+        <div class="card">
             <div class="card-body">
                 <img class="rounded-circle mr-2" src="/media/{{  profile_image }}" alt="profile_image"
                      width="20"
                      height="20">
-                <strong class="card-title">{{user.username}} </strong> said
+                <strong class="card-title">{{post.user.username}} </strong> said
                 <p class="card-text">{{ post.text }}</p>
-                <p class="m-1 mt-3">{{ post.image }}</p>
+                <img class="img-thumbnail" width="128px" src="/media/{{  post.image }}"></img>
+                {% include "communifyapp/like.html" %}
 
             </div>
             <div class="card-footer">
@@ -28,10 +29,8 @@
 </div>
 
 
-
-
 <div class="text-center">
-    <strong class="text-center">Comments</strong>
+    <p class="h1">Comments</p>
 </div>
 
 <div class="row row-cols-1 row-cols-md-3 g-4">
@@ -41,7 +40,7 @@
     <div class="col-6">
         <div class="card h-100">
             <div class="card-body">
-                <strong class="card-title">{{comment.name}} </strong> said
+                <strong class="card-title">{{comment.user.username}} </strong> said
                 <p class="card-text">{{ comment.content }}</p>
             </div>
             <div class="card-footer">

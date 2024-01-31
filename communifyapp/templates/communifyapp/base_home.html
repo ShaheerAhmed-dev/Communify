@@ -8,9 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous"/>
     <link href="{% static 'communifyapp/base.css' %}" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column  min-vh-100">
 
 <header class="border-bottom bg-warning">
     <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start p-3 mb-2 text-dark">
@@ -54,13 +55,13 @@
         </div>
     </div>
 </header>
-<main class="flex-shrink-0">
+<main class="flex-fill content">
     <div class="container-fluid">
 
 
         <!-- Main content -->
 
-        <div class="content bg-body-tertiary">
+
             <div class="row">
                 <div class="col">
                     {% block content %}
@@ -68,12 +69,13 @@
                     {% endblock %}
                 </div>
             </div>
-        </div>
+
+
     </div>
 </main>
 <footer class="footer mt-auto py-3 bg-body-tertiary">
-    <div class="container">
-        <span class="text-body-secondary">Place sticky footer content here.</span>
+    <div>
+        <span class="text-body-secondary ms-3">@Commnunify 2024.</span>
     </div>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"

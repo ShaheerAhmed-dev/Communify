@@ -3,8 +3,8 @@ from django.urls import reverse_lazy
 from django.views import generic
 from requests import post
 
-from .models import CustomUser, Post, Profile
-from .forms import SignupForm, PostForm, LoginForm
+from .models import CustomUser, Post, Profile, Share
+from .forms import SignupForm, PostForm, LoginForm, LikeForm, ShareForm
 from django.contrib.auth.views import LoginView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.detail import DetailView
@@ -13,9 +13,11 @@ from django.views.generic import View, ListView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from .models import Post, Comment
+from .models import Post, Comment, Like
 from .forms import CommentForm, EditProfileForm
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -23,17 +25,20 @@ class signUpView(CreateView):
     model = CustomUser
     form_class = SignupForm
     template_name = 'communifyapp/signup.html'
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('home')
 
-    # def form_valid(self, form):
-    #     print(form.errors)
-    #     response = super().form_valid(form)
-    #     return response
+    def form_invalid(self, form):
+        print(form.errors)
+        response = super().form_invalid(form)
+        context = self.get_context_data(form=form)
+        context.update({"message": form.errors})
+        return self.render_to_response(context)
 
 
 class LoginPageView(View):
     template_name = 'authentication/login.html'
     form_class = LoginForm
+    success_url = 'home'
 
     def get(self, request):
         form = self.form_class()
@@ -63,7 +68,7 @@ def logout_user(request):
 def home(request):
     user_profile = get_object_or_404(Profile, user=request.user)
     context = {'profile': user_profile, 'user': request.user, 'profile_image': user_profile.image}
-    return render(request, 'communifyapp/home.html', context= context )
+    return render(request, 'communifyapp/home.html', context=context)
 
 
 # @method_decorator(login_required, name="dispatch")
@@ -73,7 +78,7 @@ def home(request):
 class CreatePostView(LoginRequiredMixin, CreateView):
     template_name = 'communifyapp/create_post.html'
     form_class = PostForm
-
+    success_url = 'home'
     def get(self, request, *args, **kwargs):
         form = self.form_class()
         return render(request, self.template_name, {'form': form})
@@ -124,8 +129,93 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         return self.model.objects.filter(user=self.request.user)
 
+class LikeDeleteView(LoginRequiredMixin, DeleteView):
+    model = Like
+    template_name = 'communifyapp/like.html'
+    def get_success_url(self):
+        return f"/communify/post/{self.kwargs['post_pk']}/"
 
-# ...
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post_pk = self.kwargs["post_pk"]
+        post = get_object_or_404(Post, pk=post_pk)
+        like_queryset = Like.objects.all().filter(post=post, user=self.request.user)
+        user_profile = get_object_or_404(Profile, user=post.user)
+
+        context['post'] = post
+        context['profile_image'] = user_profile.image
+        context['like'] = like_queryset.exists()
+        return context
+    def get_object(self, queryset=None):
+        post_pk = self.kwargs["post_pk"]
+        post = get_object_or_404(Post, pk=post_pk)
+        like = Like.objects.all().filter(post=post, user=self.request.user)
+        return like
+
+class ShareView(LoginRequiredMixin, CreateView):
+    model = Share
+    form_class = ShareForm
+    template_name = 'communifyapp/share.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs["pk"]
+        post = get_object_or_404(Post, pk=pk)
+        user_profile = get_object_or_404(Profile, user=post.user)
+
+        context['post'] = post
+        context['profile_image'] = user_profile.image
+        context['user'] = self.request.user
+        return context
+    def get_success_url(self):
+        return f"/communify/post/{self.kwargs['pk']}/"
+
+    def post(self, request, *args, **kwargs):
+        post = Post.objects.filter(id=self.kwargs['pk']).first()
+        from_user = self.request.user
+        share_form_copy = request.POST.copy()
+        share_form_copy['post'] = post
+        share_form_copy['from_user'] = from_user
+        request.POST = share_form_copy
+        return super().post(request, *args, **kwargs)
+
+class LikeCreateView(LoginRequiredMixin, CreateView):
+    model = Like
+    form_class = LikeForm
+    template_name = 'communifyapp/like.html'
+
+    def get_success_url(self):
+        return f"/communify/post/{self.kwargs['pk']}/"
+    def post(self, request, *args, **kwargs):
+        post = Post.objects.filter(id=self.kwargs['pk']).first()
+        user = self.request.user
+        like_form_copy = request.POST.copy()
+        like_form_copy['post'] = post
+        like_form_copy['user'] = user
+        request.POST = like_form_copy
+        return super().post(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs["pk"]
+        post = get_object_or_404(Post, pk=pk)
+        like = Like.objects.all().filter(post=post, user=self.request.user).exists()
+        user_profile = get_object_or_404(Profile, user=post.user)
+
+        context['post'] = post
+        context['profile_image'] = user_profile.image
+        context['like'] = like
+        return context
+
+    def post(self, request, *args, **kwargs):
+        post = Post.objects.filter(id=self.kwargs['pk']).first()
+        user = self.request.user
+        like_form_copy = request.POST.copy()
+        like_form_copy['post'] = post
+        like_form_copy['user'] = user
+        request.POST = like_form_copy
+        return super().post(request, *args, **kwargs)
+
 
 class PostView(LoginRequiredMixin, DetailView):
     model = Post
@@ -135,17 +225,20 @@ class PostView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         pk = self.kwargs["pk"]
         post = get_object_or_404(Post, pk=pk)
+        like = Like.objects.all().filter(post=post, user=self.request.user).exists()
         comments = post.comment_set.all()
         user_profile = get_object_or_404(Profile, user=post.user)
 
         context['post'] = post
         context['comments'] = comments
         context['profile_image'] = user_profile.image
+        context['like'] = like
         return context
 
     def post(self, request, *args, **kwargs):
         form = CommentForm(request.POST)
         self.object = self.get_object()
+
         context = super().get_context_data(**kwargs)
 
         post = Post.objects.filter(id=self.kwargs['pk']).first()
@@ -158,6 +251,7 @@ class PostView(LoginRequiredMixin, DetailView):
         context['post'] = post
         context['comments'] = comments
         context['form'] = form
+
         print("this is working")
 
         if form.is_valid():
@@ -176,19 +270,33 @@ class PostView(LoginRequiredMixin, DetailView):
 
         return self.render_to_response(context=context)
 
+
+# @login_required()
+# def LikeView(request):
+#     like = Like.objects.all().filter(post=post, user=self.request.user).exists()
+#     user_profile = get_object_or_404(Profile, user=request.user)
+#     context = {'profile': user_profile, 'like': like}
+#     return render(request, 'communifyapp/post.html', context=context)
+
 class HomeView(LoginRequiredMixin, ListView):
     model = Post
-    context_object_name = 'posts'
+    # context_object_name = 'posts'
     template_name = "communifyapp/home.html"
+
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
         user_profile = get_object_or_404(Profile, user=self.request.user)
-        # posts = get_object_or_404(Post, user=self.request.user)
+        posts = Post.objects.filter(user=self.request.user)
+        shares = Share.objects.filter(to_user=self.request.user)
+        for share in shares:
+            share.post.user.profile_image = Profile.objects.filter(user = share.post.user).first().image
         context['profile'] = user_profile
         context['user'] = self.request.user
         context['profile_image'] = user_profile.image
-        # context['posts'] = posts
+        context['posts'] = posts
+        context['shares'] = shares
         return context
+
 
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
@@ -200,13 +308,40 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         form.instance.post_id = self.kwargs['pk']
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        print(form.errors)
+        form.instance.name = self.request.user
+        form.instance.post_id = self.kwargs['pk']
+        response = super().form_valid(form)
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post = get_object_or_404(Post, id=self.kwargs['pk'])
+        comments = post.comment_set.all()
+        context['post'] = post
+        context['comments'] = comments
+        return context
+
+    def post(self, request, *args, **kwargs):
+        post = Post.objects.filter(id=self.kwargs['pk']).first()
+        user = self.request.user
+        comment_form_copy = request.POST.copy()
+        comment_form_copy['post'] = post
+        comment_form_copy['user'] = user
+        request.POST = comment_form_copy
+        return super().post(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return f"/communify/post/{self.kwargs['pk']}/"
+
 
 @login_required
 def profile(request):
     # user = get_object_or_404(CustomUser, username=username)
-    user_profile = get_object_or_404(Profile, user= request.user)
+    user_profile = get_object_or_404(Profile, user=request.user)
     context = {'profile': user_profile, 'user': request.user, 'profile_image': user_profile.image}
-    return render(request, 'communifyapp/profile.html', context = context)
+    return render(request, 'communifyapp/profile.html', context=context)
 
 
 class EditProfileView(LoginRequiredMixin, UpdateView):
@@ -224,5 +359,5 @@ class EditProfileView(LoginRequiredMixin, UpdateView):
         return context
 
     def get_object(self, queryset=None):
-        user_profile = get_object_or_404(Profile, user=self.request.user )
+        user_profile = get_object_or_404(Profile, user=self.request.user)
         return user_profile
